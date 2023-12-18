@@ -30,15 +30,13 @@ printr() {
 parse_event() {
 	event_json="$(printr "$*" | cut -c6-)"
 	if [ "$(printr "$event_json" | jq '.stop')" != "true" ]; then
-		printr "$*" \
-			| cut -c6- \
-			| jq '.content' \
-			| sed 's/^"\|"$//g;s/%/%%/g;s/\\"/"/g'
+		printr "$event_json" |
+			jq '.content' |
+			sed 's/^"\|"$//g;s/%/%%/g;s/\\"/"/g'
 	elif [ "$(printr "$event_json" | jq '.stopped_word')" = "true" ]; then
-		printr "$*" \
-			| cut -c6- \
-			| jq '.stopping_word // ""' \
-			| sed 's/^"\|"$//g;s/%/%%/g;s/\\"/"/g'
+		printr "$event_json" |
+			jq '.stopping_word // ""' |
+			sed 's/^"\|"$//g;s/%/%%/g;s/\\"/"/g'
 	elif [ "$(printr "$event_json" | jq '.stopped_eos')" = "true" ]; then
 		printf "</s>" >> "$RESPONSE_LOG"
 	fi
@@ -172,7 +170,7 @@ fi
 test_connection
 
 printr "$formatted_prompt" > "$RESPONSE_LOG"
-printr "$parameters" | \
+printr "$parameters" |
 	curl --url "$API_URL""/completion" \
 	-X POST \
 	--silent \
