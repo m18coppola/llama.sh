@@ -12,10 +12,10 @@ while true; do
 	printf "user:\n"
 	read -r user_input
 	printf "assistant:\n"
-	printf "%s" "$user_input" | llm --stop '```python' -l "$LOG" "$(cat "$LOG")"
+	printf "%s" "$user_input" | llama.sh --stop '```python' -l "$LOG" "$(cat "$LOG")"
 	LOG_TAIL="$(tail "$LOG")"
 	if [ "${LOG_TAIL#*'```python'}" != "$LOG_TAIL" ]; then
-		printf "" | llm --stop '```' -l "$LOG" --raw "$(cat "$LOG")" | tee "$PY_LOG"
+		printf "" | llama.sh --stop '```' -l "$LOG" --raw "$(cat "$LOG")" | tee "$PY_LOG"
 		sed -i '$d' "$PY_LOG"
 		printf "\033[31mRUN PYTHON SCRIPT? [y/N] \033[0m"
 		printf "\n\n" >> "$LOG"
@@ -31,7 +31,7 @@ while true; do
 		read -r yn
 		case $yn in
 			[Yy]* )
-				printf "" | llm -l "$LOG" --raw "$(cat "$LOG")" ;;
+				printf "" | llama.sh -l "$LOG" --raw "$(cat "$LOG")" ;;
 			* ) ;;
 		esac
 	fi
