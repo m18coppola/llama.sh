@@ -78,6 +78,8 @@ Flags:
 	--stop "word", -s "word"   (stop word. default: none)
 	--log logfile, -l logfile  (set file for logging. default: ~/.cache/last_response.txt)
 	--verbose,     -v          (echo json payload before sending)
+	--raw,         -r          (do not wrap prompt with prefix/suffix strings)
+	--help,        -h          (display this message)
 EOF
 }
 
