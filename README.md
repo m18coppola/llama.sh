@@ -15,9 +15,11 @@ Add these scripts to your `$PATH`. Configuration is done by editing the top of t
 
 ## Usage
 ```
-ai [--options] "prompt"
-echo "prompt" | ai [--options]
-echo "prompt" | ai [--options] "system prompt"
+llama.sh [--options] "prompt"
+echo "prompt" | llama.sh [--options]
+echo "prompt" | llama.sh [--options] "system prompt"
+
+llama.sh --help
 ```
 
 ## Demo (`python_chat.sh`)
