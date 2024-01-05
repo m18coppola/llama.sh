@@ -64,9 +64,9 @@ get_parameter() {
 print_usage() {
 	cat << EOF
 Usage:
-	ai [--options] "prompt"
-	echo "prompt" | ai [--options]
-	echo "prompt" | ai [--options] "system prompt"
+	llama.sh [--options] "prompt"
+	echo "prompt" | llama.sh [--options]
+	echo "prompt" | llama.sh [--options] "system prompt"
 Flags:
 	--n-predict N, -n N        (number of tokens to generate, -1 for inf. default: $(printr "$(get_parameter 'n_predict')"))
 	--temp TEMP,   -t TEMP     (temperature. default: $(printr "$(get_parameter 'temperature')"))
