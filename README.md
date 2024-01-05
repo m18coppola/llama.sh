@@ -19,3 +19,6 @@ ai [--options] "prompt"
 echo "prompt" | ai [--options]
 echo "prompt" | ai [--options] "system prompt"
 ```
+
+## Demo (`python_chat.sh`)
+![You should probably read the code before executing it...](https://raw.githubusercontent.com/m18coppola/llama.sh/main/assets/python_agent.gif)
