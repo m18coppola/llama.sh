@@ -13,6 +13,8 @@ _**NOTE:** Default config optimized for Mixtral-Instruct-8x7B_
 ## Setup
 Add these scripts to your `$PATH`. Configuration is done by editing the top of the `llama.sh` file.
 
+Not sure how to set up llama.cpp? Check out Mozilla's [llamafile](https://github.com/Mozilla-Ocho/llamafile)!
+
 ## Usage
 ```
 llama.sh [--options] "prompt"
