@@ -23,7 +23,7 @@ while true; do
 		case $yn in
 			[Yy]* )
 				printf "\`\`\`output\n" | tee -a "$LOG"
-				python "$PY_LOG" | tee -a "$LOG"
+				python3 "$PY_LOG" | tee -a "$LOG"
 				printf "\`\`\`\n" | tee -a "$LOG" ;;
 			* ) ;;
 		esac
