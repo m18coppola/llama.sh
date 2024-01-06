@@ -13,7 +13,7 @@ while true; do
 	read -r user_input
 	printf "assistant:\n"
 	printf "%s" "$user_input" | llama.sh --stop '```python' -l "$LOG" "$(cat "$LOG")"
-	LOG_TAIL="$(tail "$LOG")"
+	LOG_TAIL="$(tail -n1 "$LOG")"
 	if [ "${LOG_TAIL#*'```python'}" != "$LOG_TAIL" ]; then
 		printf "" | llama.sh --stop '```' -l "$LOG" --raw "$(cat "$LOG")" | tee "$PY_LOG"
 		sed -i '$d' "$PY_LOG"
