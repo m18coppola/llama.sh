@@ -3,9 +3,10 @@
 # defaults
 VERBOSE=0
 API_URL='127.0.0.1:8080'
+API_KEY='none'
 PREFIX=' [INST] '
 SUFFIX=' [/INST]'
-RESPONSE_LOG="${HOME}/.cache/last_response.txt"
+RESPONSE_LOG="$HOME"'/.cache/last_response.txt'
 SYSTEM_PROMPT=''
 parameters="$(jq -nR '{
 	prompt: "",
@@ -50,8 +51,23 @@ parse_event_stream() {
 }
 
 test_connection() {
-	if ! curl --url "$API_URL""/props" --silent > /dev/null ; then
-		echo "failed to connect to $API_URL."
+	STATUS="$(curl --url "$API_URL"'/health' --silent | jq -r '.status')"
+	if [ "$STATUS" = "loading model" ]; then
+		echo "$API_URL"' is still loading model, try again later.'
+		exit 1
+	elif [ "$STATUS" = "error" ]; then
+		echo "$API_URL"' is unable to load the model.'
+		exit 1
+	elif [ "$STATUS" != "ok" ]; then
+		echo 'failed to connect to '"$API_URL"
+		exit 1
+	fi
+	STATUS="$(curl --url "$API_URL"'/completion' \
+			--silent \
+			--header 'Authorization: Bearer '"$API_KEY" \
+			--data '{"n_predict":0}')"
+	if [ "$STATUS" = "Unauthorized" ]; then
+		echo 'API key is not authorized.'
 		exit 1
 	fi
 }
@@ -77,6 +93,7 @@ Flags:
 	--log logfile, -l logfile  (set file for logging. default: ~/.cache/last_response.txt)
 	--verbose,     -v          (echo json payload before sending)
 	--raw,         -r          (do not wrap prompt with prefix/suffix strings)
+	--api-key,     -a          (override key used for llama.cpp API, usually not needed unless explicitly set)
 	--help,        -h          (display this message)
 EOF
 }
@@ -100,12 +117,13 @@ for arg in "$@"; do
 		'--verbose')   set -- "$@" '-v' ;;
 		'--help')      set -- "$@" '-h' ;;
 		'--raw')       set -- "$@" '-r' ;;
+		'--api-key')   set -- "$@" '-a' ;;
 		*)             set -- "$@" "$arg" ;;
 	esac
 done
 
 OPTIND=1
-while getopts "n:t:m:p:k:s:l:vhr" opt
+while getopts "n:t:m:p:k:s:l:vhra:" opt
 do
 	case "$opt" in
 		'n') parameters="$(printr "$parameters" |
@@ -136,6 +154,7 @@ do
 		'v') VERBOSE=1 ;;
 		'h') print_usage; exit 0 ;;
 		'r') PREFIX='' SUFFIX='' ;;
+		'a') API_KEY="$OPTARG" ;;
 		'?') print_usage; exit 1 ;;
 	esac
 done
@@ -171,10 +190,11 @@ test_connection
 
 printr "$formatted_prompt" > "$RESPONSE_LOG"
 printr "$parameters" |
-	curl --url "$API_URL""/completion" \
+	curl --url "$API_URL"'/completion' \
 	-X POST \
 	--silent \
 	--no-buffer \
+	--header 'Authorization: Bearer '"$API_KEY" \
 	--data-binary @- |
 	parse_event_stream | tee -a "$RESPONSE_LOG"
 printf "\n"
