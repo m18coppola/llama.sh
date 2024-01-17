@@ -2,7 +2,7 @@
 
 LOG="${HOME}/chat.txt"
 PY_LOG="${HOME}/py_log.py"
-printf "%s" 'You are Quentin. Quentin is a useful assistant who writes Python code to answer question in a
+printf "%s" 'You are Quentin. Quentin is a useful assistant who writes Python code to answer questions in a
 ```python
 # insert code here
 ```
