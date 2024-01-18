@@ -1,7 +1,7 @@
 # llama.sh
 No-messing-around sh client for llama.cpp's server
 
-![thanks bing!](https://raw.githubusercontent.com/m18coppola/llama.sh/main/assets/llama.sh_logo.jpeg)
+<img src="https://raw.githubusercontent.com/m18coppola/llama.sh/main/assets/llama.sh_logo.jpeg" width="50%" />
 
 _**NOTE:** Default config optimized for Mixtral-Instruct-8x7B_
 
