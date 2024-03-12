@@ -78,11 +78,12 @@ get_parameter() {
 }
 
 print_usage() {
+	SCRIPT_NAME="$(basename "$0")"
 	cat << EOF
 Usage:
-	llama.sh [--options] "prompt"
-	echo "prompt" | llama.sh [--options]
-	echo "prompt" | llama.sh [--options] "system prompt"
+	$SCRIPT_NAME [--options] "prompt"
+	echo "prompt" | $SCRIPT_NAME [--options]
+	echo "prompt" | $SCRIPT_NAME [--options] "system prompt"
 Flags:
 	--n-predict N, -n N        (number of tokens to generate, -1 for inf. default: $(printr "$(get_parameter 'n_predict')"))
 	--temp TEMP,   -t TEMP     (temperature. default: $(printr "$(get_parameter 'temperature')"))
@@ -170,7 +171,7 @@ elif [ -n "$1" ]; then
 else
 	echo "Error: no input." >&2
 	print_usage >&2
-	return 1
+	exit 1
 fi
 ###
 
