@@ -46,7 +46,7 @@ parse_event() {
 parse_event_stream() {
 	while IFS= read -r LINE; do
 		printr "$LINE" | grep -q "data:*" &&
-			printf "$(parse_event "$LINE")"
+			printf "%b" "$(parse_event "$LINE")"
 	done
 }
 
