@@ -30,13 +30,15 @@ Flags:
         --log logfile, -l logfile  (set file for logging. default: ~/.cache/last_response.txt)
         --verbose,     -v          (echo json payload before sending)
         --raw,         -r          (do not wrap prompt with prefix/suffix strings)
-        --api-key,     -a          (override key used for llama.cpp API, usually not needed unless explicitly set)
-        --api-url,     -u          (override url used for llama.cpp API)
+        --api-key,     -a          (override key used for llama.cpp API, usually not needed unless explicitly set. will override env var)
+        --api-url,     -u          (override url used for llama.cpp API. will override env var)
         --help,        -h          (display this message)
 Environment Variables:
         LSH_SYSTEM_PROMPT_PREFIX   (string prefixed to system prompt input)
         LSH_PREFIX                 (string prefixed to user prompt input)
         LSH_SUFFIX                 (string appended to user prompt input)
+        LSH_API_KEY                (optional API key)
+        LSH_API_URL                (API url)
 ```
 
 ## Demo (`python_chat.sh`)

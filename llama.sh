@@ -88,13 +88,15 @@ Flags:
 	--log logfile, -l logfile  (set file for logging. default: ~/.cache/last_response.txt)
 	--verbose,     -v          (echo json payload before sending)
 	--raw,         -r          (do not wrap prompt with prefix/suffix strings)
-	--api-key,     -a          (override key used for llama.cpp API, usually not needed unless explicitly set)
-	--api-url,     -u          (override url used for llama.cpp API)
+	--api-key,     -a          (override key used for llama.cpp API, usually not needed unless explicitly set. will override env var)
+	--api-url,     -u          (override url used for llama.cpp API. will override env var)
 	--help,        -h          (display this message)
 Environment Variables:
 	LSH_SYSTEM_PROMPT_PREFIX   (string prefixed to system prompt input)
 	LSH_PREFIX                 (string prefixed to user prompt input)
 	LSH_SUFFIX                 (string appended to user prompt input)
+	LSH_API_KEY                (optional API key)
+	LSH_API_URL                (API url)
 EOF
 }
 
@@ -102,6 +104,23 @@ format_prompt() {
 	printf "%b" "$SYSTEM_PROMPT_PREFIX""$SYSTEM_PROMPT""${PREFIX}""$(cat)""$SUFFIX""x"
 }
 ###
+
+# get env vars
+if [ "${LSH_SYSTEM_PROMPT_PREFIX+set}" = set ]; then
+	SYSTEM_PROMPT_PREFIX="$LSH_SYSTEM_PROMPT_PREFIX"
+fi
+if [ "${LSH_PREFIX+set}" = set ]; then
+	PREFIX="$LSH_PREFIX"
+fi
+if [ "${LSH_SUFFIX+set}" = set ]; then
+	PREFIX="$LSH_SUFFIX"
+fi
+if [ "${LSH_API_KEY+set}" = set ]; then
+	API_KEY="$LSH_API_KEY"
+fi
+if [ "${LSH_API_URL+set}" = set ]; then
+	API_URL="$LSH_API_URL"
+fi
 
 # parse arguments
 for arg in "$@"; do
@@ -162,17 +181,6 @@ do
 done
 shift "$((OPTIND - 1))"
 ###
-
-# get env vars
-if [ "${LSH_SYSTEM_PROMPT_PREFIX+set}" = set ]; then
-	SYSTEM_PROMPT_PREFIX="$LSH_SYSTEM_PROMPT_PREFIX"
-fi
-if [ "${LSH_PREFIX+set}" = set ]; then
-	PREFIX="$LSH_PREFIX"
-fi
-if [ "${LSH_SUFFIX+set}" = set ]; then
-	PREFIX="$LSH_SUFFIX"
-fi
 
 # get prompts
 if [ ! -t 0 ]; then
