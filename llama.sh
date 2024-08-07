@@ -75,9 +75,9 @@ get_parameter() {
 print_usage() {
 	cat << EOF
 Usage:
-	$0 [--options] "prompt"
-	echo "prompt" | $0 [--options]
-	echo "prompt" | $0 [--options] "system prompt"
+	$(basename "$0") [--options] "prompt"
+	echo "prompt" | $(basename "$0") [--options]
+	echo "prompt" | $(basename "$0") [--options] "system prompt"
 Flags:
 	--n-predict N, -n N        (number of tokens to generate, -1 for inf. default: $(printf "%s" "$(get_parameter 'n_predict')"))
 	--temp TEMP,   -t TEMP     (temperature. default: $(printf "%s" "$(get_parameter 'temperature')"))
