@@ -4,48 +4,43 @@
 VERBOSE=0
 API_URL='127.0.0.1:8080'
 API_KEY='none'
-PREFIX=' [INST] '
-SUFFIX=' [/INST]'
 RESPONSE_LOG="$HOME"'/.cache/last_response.txt'
-SYSTEM_PROMPT=''
+SYSTEM_PROMPT_PREFIX="<|start_header_id|>system<|end_header_id|>\n\n"
+SYSTEM_PROMPT='You are Llama-3.1, a helpful AI assistant.'
+PREFIX='<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n'
+SUFFIX='<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n'
 parameters="$(jq -nR '{
 	prompt: "",
-	repeat_penalty: 1,
-	no_penalize_nl: true,
-	repeat_last_n: 0,
-	stream: true,
-	temperature: 0.8,
-	min_p: 0.05,
+	temperature: 0.6,
+	top_k: 45,
 	top_p: 0.95,
-	top_k: 40,
+	min_p: 0.05,
+	repeat_penalty: 1.0,
+	repeat_last_n: 0,
+	penalize_nl: false,
 	n_predict: -1,
+	stream: true,
 	cache_prompt: true,
 }')"
 ###
 
 # functions
-printr() {
-	printf "%s" "$*"
-}
-
 parse_event() {
-	event_json="$(printr "$*" | cut -c6-)"
-	if [ "$(printr "$event_json" | jq '.stop')" != "true" ]; then
-		printr "$event_json" |
+	event_json="$(printf "%s" "$*" | cut -c6-)"
+	if [ "$(printf "%s" "$event_json" | jq '.stop')" != "true" ]; then
+		printf "%s" "$event_json" |
 			jq '.content' |
 			sed 's/^"\|"$//g;s/%/%%/g;s/\\"/"/g'
-	elif [ "$(printr "$event_json" | jq '.stopped_word')" = "true" ]; then
-		printr "$event_json" |
+	elif [ "$(printf "%s" "$event_json" | jq '.stopped_word')" = "true" ]; then
+		printf "%s" "$event_json" |
 			jq '.stopping_word // ""' |
 			sed 's/^"\|"$//g;s/%/%%/g;s/\\"/"/g'
-	elif [ "$(printr "$event_json" | jq '.stopped_eos')" = "true" ]; then
-		printf "</s>" >> "$RESPONSE_LOG"
 	fi
 }
 
 parse_event_stream() {
 	while IFS= read -r LINE; do
-		printr "$LINE" | grep -q "data:*" &&
+		printf "%s" "$LINE" | grep -q "data:*" &&
 			printf "%b" "$(parse_event "$LINE")"
 	done
 }
@@ -65,8 +60,8 @@ test_connection() {
 	STATUS="$(curl --url "$API_URL"'/completion' \
 			--silent \
 			--header 'Authorization: Bearer '"$API_KEY" \
-			--data '{"n_predict":0}')"
-	if [ "$STATUS" = "Unauthorized" ]; then
+			--data '{"prompt":"", "n_predict":0}' | jq -r '.error.message')"
+	if [ "$STATUS" = "Invalid API Key" ]; then
 		echo 'API key is not authorized.'
 		exit 1
 	fi
@@ -74,32 +69,36 @@ test_connection() {
 
 get_parameter() {
 	param=".${1}"
-	printr "$parameters" | jq "$param"
+	printf "%s" "$parameters" | jq "$param"
 }
 
 print_usage() {
 	cat << EOF
 Usage:
-	llama.sh [--options] "prompt"
-	echo "prompt" | llama.sh [--options]
-	echo "prompt" | llama.sh [--options] "system prompt"
+	$0 [--options] "prompt"
+	echo "prompt" | $0 [--options]
+	echo "prompt" | $0 [--options] "system prompt"
 Flags:
-	--n-predict N, -n N        (number of tokens to generate, -1 for inf. default: $(printr "$(get_parameter 'n_predict')"))
-	--temp TEMP,   -t TEMP     (temperature. default: $(printr "$(get_parameter 'temperature')"))
-	--min-p P,     -m P        (min-p. default: $(printr "$(get_parameter 'min_p')"))
-	--top-p P,     -p P        (top-p. default: $(printr "$(get_parameter 'top_p')"))
-	--top-k K,     -k K        (top-k. default: $(printr "$(get_parameter 'top_k')"))
+	--n-predict N, -n N        (number of tokens to generate, -1 for inf. default: $(printf "%s" "$(get_parameter 'n_predict')"))
+	--temp TEMP,   -t TEMP     (temperature. default: $(printf "%s" "$(get_parameter 'temperature')"))
+	--min-p P,     -m P        (min-p. default: $(printf "%s" "$(get_parameter 'min_p')"))
+	--top-p P,     -p P        (top-p. default: $(printf "%s" "$(get_parameter 'top_p')"))
+	--top-k K,     -k K        (top-k. default: $(printf "%s" "$(get_parameter 'top_k')"))
 	--stop "word", -s "word"   (stop word. default: none)
 	--log logfile, -l logfile  (set file for logging. default: ~/.cache/last_response.txt)
 	--verbose,     -v          (echo json payload before sending)
 	--raw,         -r          (do not wrap prompt with prefix/suffix strings)
 	--api-key,     -a          (override key used for llama.cpp API, usually not needed unless explicitly set)
 	--help,        -h          (display this message)
+Environment Variables:
+	LSH_SYSTEM_PROMPT_PREFIX   (string prefixed to system prompt input)
+	LSH_PREFIX                 (string prefixed to user prompt input)
+	LSH_SUFFIX                 (string appended to user prompt input)
 EOF
 }
 
 format_prompt() {
-	printr "$SYSTEM_PROMPT""${PREFIX}""$(cat)""$SUFFIX"
+	printf "%b" "$SYSTEM_PROMPT_PREFIX""$SYSTEM_PROMPT""${PREFIX}""$(cat)""$SUFFIX""x"
 }
 ###
 
@@ -126,27 +125,27 @@ OPTIND=1
 while getopts "n:t:m:p:k:s:l:vhra:" opt
 do
 	case "$opt" in
-		'n') parameters="$(printr "$parameters" |
+		'n') parameters="$(printf "%s" "$parameters" |
 			jq --arg value "$OPTARG" \
 			'.n_predict=($value|tonumber)' \
 			)" ;;
-		't') parameters="$(printr "$parameters" |
+		't') parameters="$(printf "%s" "$parameters" |
 			jq --arg value "$OPTARG" \
 			'.temperature=($value|tonumber)'
 			)" ;;
-		'm') parameters="$(printr "$parameters" |
+		'm') parameters="$(printf "%s" "$parameters" |
 			jq --arg value "$OPTARG" \
 			'.min_p=($value|tonumber)' \
 			)" ;;
-		'p') parameters="$(printr "$parameters" |
+		'p') parameters="$(printf "%s" "$parameters" |
 			jq --arg value "$OPTARG" \
 			'.top_p=($value|tonumber)' \
 			)" ;;
-		'k') parameters="$(printr "$parameters" |
+		'k') parameters="$(printf "%s" "$parameters" |
 			jq --arg value "$OPTARG" \
 			'.top_k=($value|tonumber)' \
 			)" ;;
-		's') parameters="$(printr "$parameters" |
+		's') parameters="$(printf "%s" "$parameters" |
 			jq --arg value "$OPTARG" \
 			'.stop=[$value]' \
 			)" ;;
@@ -161,6 +160,17 @@ done
 shift "$((OPTIND - 1))"
 ###
 
+# get env vars
+if [ "${LSH_SYSTEM_PROMPT_PREFIX+set}" = set ]; then
+	SYSTEM_PROMPT_PREFIX="$LSH_SYSTEM_PROMPT_PREFIX"
+fi
+if [ "${LSH_PREFIX+set}" = set ]; then
+	PREFIX="$LSH_PREFIX"
+fi
+if [ "${LSH_SUFFIX+set}" = set ]; then
+	PREFIX="$LSH_SUFFIX"
+fi
+
 # get prompts
 if [ ! -t 0 ]; then
 	user_input="$(cat)"
@@ -174,22 +184,22 @@ else
 fi
 ###
 
-formatted_prompt="$(printr "$user_input" | format_prompt)"
+formatted_prompt="$(printf "%s" "$user_input" | format_prompt)"
 
 parameters="$( \
-	printr "$parameters" |
-	jq --arg value "$formatted_prompt" '.prompt=$value' \
+	printf "%s" "$parameters" |
+	jq --arg value "${formatted_prompt%?}" '.prompt=$value' \
 	)"
 
 if [ "$VERBOSE" = "1" ]; then
-	printr "$parameters" | jq >&2
+	printf "%s" "$parameters" | jq >&2
 fi
 
 # request completion
 test_connection
 
-printr "$formatted_prompt" > "$RESPONSE_LOG"
-printr "$parameters" |
+printf "%s" "${formatted_prompt%?}" > "$RESPONSE_LOG"
+printf "%s" "$parameters" |
 	curl --url "$API_URL"'/completion' \
 	-X POST \
 	--silent \
