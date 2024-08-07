@@ -1,5 +1,5 @@
 # llama.sh
-No-messing-around sh client for llama.cpp's server
+No-messing-around sh client for [llama.cpp](https://github.com/ggerganov/llama.cpp)'s server
 
 <img src="https://raw.githubusercontent.com/m18coppola/llama.sh/main/assets/llama.sh_logo.jpeg" width="50%" />
 
