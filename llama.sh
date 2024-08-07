@@ -30,11 +30,11 @@ parse_event() {
 	if [ "$(printf "%s" "$event_json" | jq '.stop')" != "true" ]; then
 		printf "%s" "$event_json" |
 			jq '.content' |
-			sed 's/^"\|"$//g;s/%/%%/g;s/\\"/"/g'
+			sed 's/^"\|"$//g;s/\\"/"/g'
 	elif [ "$(printf "%s" "$event_json" | jq '.stopped_word')" = "true" ]; then
 		printf "%s" "$event_json" |
 			jq '.stopping_word // ""' |
-			sed 's/^"\|"$//g;s/%/%%/g;s/\\"/"/g'
+			sed 's/^"\|"$//g;s/\\"/"/g'
 	fi
 }
 
