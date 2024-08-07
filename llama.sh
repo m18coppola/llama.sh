@@ -2,6 +2,7 @@
 
 # defaults
 VERBOSE=0
+SKIP_SYS_PROMPT=0
 API_URL='127.0.0.1:8080'
 API_KEY='none'
 RESPONSE_LOG="$HOME"'/.cache/last_response.txt'
@@ -79,18 +80,19 @@ Usage:
 	echo "prompt" | $(basename "$0") [--options]
 	echo "prompt" | $(basename "$0") [--options] "system prompt"
 Flags:
-	--n-predict N, -n N        (number of tokens to generate, -1 for inf. default: $(printf "%s" "$(get_parameter 'n_predict')"))
-	--temp TEMP,   -t TEMP     (temperature. default: $(printf "%s" "$(get_parameter 'temperature')"))
-	--min-p P,     -m P        (min-p. default: $(printf "%s" "$(get_parameter 'min_p')"))
-	--top-p P,     -p P        (top-p. default: $(printf "%s" "$(get_parameter 'top_p')"))
-	--top-k K,     -k K        (top-k. default: $(printf "%s" "$(get_parameter 'top_k')"))
-	--stop "word", -s "word"   (stop word. default: none)
-	--log logfile, -l logfile  (set file for logging. default: ~/.cache/last_response.txt)
-	--verbose,     -v          (echo json payload before sending)
-	--raw,         -r          (do not wrap prompt with prefix/suffix strings)
-	--api-key,     -a          (override key used for llama.cpp API, usually not needed unless explicitly set. will override env var)
-	--api-url,     -u          (override url used for llama.cpp API. will override env var)
-	--help,        -h          (display this message)
+	--n-predict N,   -n N        (number of tokens to generate, -1 for inf. default: $(printf "%s" "$(get_parameter 'n_predict')"))
+	--temp TEMP,     -t TEMP     (temperature. default: $(printf "%s" "$(get_parameter 'temperature')"))
+	--min-p P,       -m P        (min-p. default: $(printf "%s" "$(get_parameter 'min_p')"))
+	--top-p P,       -p P        (top-p. default: $(printf "%s" "$(get_parameter 'top_p')"))
+	--top-k K,       -k K        (top-k. default: $(printf "%s" "$(get_parameter 'top_k')"))
+	--stop "word",   -s "word"   (stop word. default: none)
+	--log logfile,   -l logfile  (set file for logging. default: ~/.cache/last_response.txt)
+	--verbose,       -v          (echo json payload before sending)
+	--raw,           -r          (do not wrap prompt with prefix/suffix strings)
+	--no-sys-prompt, -e          (do not include system prompt string)
+	--api-key "key", -a "key"    (override key used for llama.cpp API, usually not needed unless explicitly set. will override env var)
+	--api-url "url", -u "url"    (override url used for llama.cpp API. will override env var)
+	--help,          -h          (display this message)
 Environment Variables:
 	LSH_SYSTEM_PROMPT_PREFIX   (string prefixed to system prompt input)
 	LSH_PREFIX                 (string prefixed to user prompt input)
@@ -126,24 +128,25 @@ fi
 for arg in "$@"; do
 	shift
 	case "$arg" in
-		'--n-predict') set -- "$@" '-n' ;;
-		'--temp')      set -- "$@" '-t' ;;
-		'--min-p')     set -- "$@" '-m' ;;
-		'--top-p')     set -- "$@" '-p' ;;
-		'--top-k')     set -- "$@" '-k' ;;
-		'--stop')      set -- "$@" '-s' ;;
-		'--log')       set -- "$@" '-l' ;;
-		'--verbose')   set -- "$@" '-v' ;;
-		'--help')      set -- "$@" '-h' ;;
-		'--raw')       set -- "$@" '-r' ;;
-		'--api-key')   set -- "$@" '-a' ;;
-		'--api-url')   set -- "$@" '-u' ;;
-		*)             set -- "$@" "$arg" ;;
+		'--n-predict')     set -- "$@" '-n' ;;
+		'--temp')          set -- "$@" '-t' ;;
+		'--min-p')         set -- "$@" '-m' ;;
+		'--top-p')         set -- "$@" '-p' ;;
+		'--top-k')         set -- "$@" '-k' ;;
+		'--stop')          set -- "$@" '-s' ;;
+		'--log')           set -- "$@" '-l' ;;
+		'--verbose')       set -- "$@" '-v' ;;
+		'--help')          set -- "$@" '-h' ;;
+		'--raw')           set -- "$@" '-r' ;;
+		'--no-sys-prompt') set -- "$@" '-e' ;;
+		'--api-key')       set -- "$@" '-a' ;;
+		'--api-url')       set -- "$@" '-u' ;;
+		*)                 set -- "$@" "$arg" ;;
 	esac
 done
 
 OPTIND=1
-while getopts "n:t:m:p:k:s:l:vhra:u:" opt
+while getopts "n:t:m:p:k:s:l:vhrea:u:" opt
 do
 	case "$opt" in
 		'n') parameters="$(printf "%s" "$parameters" |
@@ -174,6 +177,7 @@ do
 		'v') VERBOSE=1 ;;
 		'h') print_usage; exit 0 ;;
 		'r') SYSTEM_PROMPT_PREFIX='' PREFIX='' SUFFIX='' ;;
+		'e') SKIP_SYS_PROMPT=1 ;;
 		'a') API_KEY="$OPTARG" ;;
 		'u') API_URL="$OPTARG" ;;
 		'?') print_usage; exit 1 ;;
@@ -192,6 +196,10 @@ else
 	echo "Error: no input." >&2
 	print_usage >&2
 	return 1
+fi
+if [ "$SKIP_SYS_PROMPT" = 1 ]; then
+	SYSTEM_PROMPT_PREFIX=''
+	SYSTEM_PROMPT=''
 fi
 ###
 
