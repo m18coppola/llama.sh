@@ -89,6 +89,7 @@ Flags:
 	--verbose,     -v          (echo json payload before sending)
 	--raw,         -r          (do not wrap prompt with prefix/suffix strings)
 	--api-key,     -a          (override key used for llama.cpp API, usually not needed unless explicitly set)
+	--api-url,     -u          (override url used for llama.cpp API)
 	--help,        -h          (display this message)
 Environment Variables:
 	LSH_SYSTEM_PROMPT_PREFIX   (string prefixed to system prompt input)
@@ -117,12 +118,13 @@ for arg in "$@"; do
 		'--help')      set -- "$@" '-h' ;;
 		'--raw')       set -- "$@" '-r' ;;
 		'--api-key')   set -- "$@" '-a' ;;
+		'--api-url')   set -- "$@" '-u' ;;
 		*)             set -- "$@" "$arg" ;;
 	esac
 done
 
 OPTIND=1
-while getopts "n:t:m:p:k:s:l:vhra:" opt
+while getopts "n:t:m:p:k:s:l:vhra:u:" opt
 do
 	case "$opt" in
 		'n') parameters="$(printf "%s" "$parameters" |
@@ -154,6 +156,7 @@ do
 		'h') print_usage; exit 0 ;;
 		'r') PREFIX='' SUFFIX='' ;;
 		'a') API_KEY="$OPTARG" ;;
+		'u') API_URL="$OPTARG" ;;
 		'?') print_usage; exit 1 ;;
 	esac
 done

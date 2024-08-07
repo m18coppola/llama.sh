@@ -31,6 +31,7 @@ Flags:
         --verbose,     -v          (echo json payload before sending)
         --raw,         -r          (do not wrap prompt with prefix/suffix strings)
         --api-key,     -a          (override key used for llama.cpp API, usually not needed unless explicitly set)
+        --api-url,     -u          (override url used for llama.cpp API)
         --help,        -h          (display this message)
 Environment Variables:
         LSH_SYSTEM_PROMPT_PREFIX   (string prefixed to system prompt input)
