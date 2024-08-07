@@ -173,7 +173,7 @@ do
 		'l') RESPONSE_LOG="$OPTARG" ;;
 		'v') VERBOSE=1 ;;
 		'h') print_usage; exit 0 ;;
-		'r') PREFIX='' SUFFIX='' ;;
+		'r') SYSTEM_PROMPT_PREFIX='' PREFIX='' SUFFIX='' ;;
 		'a') API_KEY="$OPTARG" ;;
 		'u') API_URL="$OPTARG" ;;
 		'?') print_usage; exit 1 ;;
